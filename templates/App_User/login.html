@@ -1,0 +1,99 @@
+{% load static %}  
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+  <!--<![endif]-->
+
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>App Login</title>
+    <meta name="description" content="Sufee Admin - HTML5 Admin Template" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="apple-touch-icon" href="apple-icon.png" />
+    <link rel="shortcut icon" href="favicon.ico" />
+
+    <link
+      rel="stylesheet"
+      href="{% static 'library/vendors/bootstrap/dist/css/bootstrap.min.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'library/vendors/font-awesome/css/font-awesome.min.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'library/vendors/themify-icons/css/themify-icons.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'library/vendors/flag-icon-css/css/flag-icon.min.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'library/vendors/selectFX/css/cs-skin-elastic.css' %}"
+    />
+
+    <link rel="stylesheet" href="{% static 'library/assets/css/style.css' %}" />
+
+    <link
+      href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800"
+      rel="stylesheet"
+      type="text/css"
+    />
+  </head>
+
+  <body class="bg-dark">
+    <div style="margin-top:50px ;" class="sufee-login d-flex align-content-center flex-wrap">
+      <div style="margin-top:20px; margin-bottom:20px" class="container">
+        <div class="login-content">
+          <div class="login-logo">
+            <h1 class="text-white"> <em class="text-light">Admin</em> <em class="text-muted"> Panel</em></h1>
+            <!-- <a href="index.html">
+              <img
+                class="align-content"
+                src="{% static 'library/images/logo.png' %}"
+                alt=""
+              />
+            </a> -->
+          </div>
+          <div class="login-form">
+            <form style="margin-top:20px; margin-bottom:20px" method="POST" action="{% url 'App_User:login' %}">
+                {% csrf_token %}
+              <div class="form-group">
+                <!-- <label>Username</label> -->
+                <input type="text" name="username" id="username" class="form-control" placeholder="Enter Username" />
+              </div>
+              <div class="form-group">
+                <!-- <label>Password</label> -->
+                <input
+                  name="password" id="password"
+                  type="password"
+                  class="form-control"
+                  placeholder="Enter Password"
+                />
+              </div>
+              <!-- <div class="checkbox">
+                <label> <input type="checkbox" /> Remember Me </label>
+                <label class="pull-right">
+                  <a href="#">Forgotten Password?</a>
+                </label>
+              </div> -->
+              <button
+                type="submit"
+                class="btn btn-info btn-sm m-b-10 m-t-10"
+              >
+                Sign in
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="{% static 'library/vendors/jquery/dist/jquery.min.js' %}"></script>
+    <script src="{% static 'library/vendors/popper.js/dist/umd/popper.min.js' %}"></script>
+    <script src="{% static 'library/vendors/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'library/assets/js/main.js' %}"></script>
+  </body>
+</html>

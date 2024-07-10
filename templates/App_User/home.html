@@ -1,0 +1,15 @@
+{% extends 'Layouts/base.html' %}
+
+{% block span_block %}
+    Dashboard
+{% endblock span_block %}
+    
+{% block body_block %}
+<div class="row mg-b-20">
+  <div class="col-xl-12">
+    <div class="card pd-20">
+        <h1 class="">Welcome to the Admin Panel, {{user|capfirst }}!</h1>
+    </div>
+  </div>
+</div>
+{% endblock body_block %}
