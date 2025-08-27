@@ -1,8 +1,10 @@
+# auth_serializers.py
+
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
-from ..models import Member
+from .models import Member
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -23,7 +25,13 @@ class MemberSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'join_date']
     
     def get_full_name(self, obj):
-        return obj.user.get_full_name() or obj.user.username
+        if isinstance(obj, Member):  # normal case
+            return obj.user.get_full_name() or obj.user.username
+        # If it's a dict (during creation)
+        user = obj.get("user")
+        if isinstance(user, dict):
+            return f"{user.get('first_name', '')} {user.get('last_name', '')}".strip() or user.get("username")
+        return None
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -127,5 +135,87 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         if avatar is not None:
             member.avatar = avatar
         member.save()
+        
+        return instance
+
+
+class MemberCreateSerializer(serializers.ModelSerializer):
+    # User fields
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    password = serializers.CharField(write_only=True, validators=[validate_password])
+    
+    # Member fields
+    phone = serializers.CharField(max_length=15, required=False, allow_blank=True)
+    role = serializers.CharField(max_length=20, required=False, default='member')
+    status = serializers.CharField(max_length=20, required=False, default='active')
+    dietary_restrictions = serializers.CharField(required=False, allow_blank=True)
+    member_type = serializers.CharField(max_length=20, required=False, default='employee')
+    monthly_deposit = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
+    
+    class Meta:
+        model = Member
+        fields = ['username', 'email', 'first_name', 'last_name', 'password',
+                 'phone', 'role', 'status', 'dietary_restrictions', 'member_type', 'monthly_deposit']
+    
+    def create(self, validated_data):
+        # Extract user fields
+        user_data = {
+            'username': validated_data.pop('username'),
+            'email': validated_data.pop('email'),
+            'first_name': validated_data.pop('first_name'),
+            'last_name': validated_data.pop('last_name'),
+            'password': validated_data.pop('password'),
+        }
+        
+        # Create user
+        user = User.objects.create_user(**user_data)
+        
+        # Create member with remaining fields
+        member = Member.objects.create(user=user, **validated_data)
+        
+        return member
+
+
+class MemberUpdateSerializer(serializers.ModelSerializer):
+    # User fields
+    username = serializers.CharField(required=False)
+    email = serializers.EmailField(required=False)
+    first_name = serializers.CharField(required=False)
+    last_name = serializers.CharField(required=False)
+    
+    # Member fields
+    phone = serializers.CharField(max_length=15, required=False, allow_blank=True)
+    role = serializers.CharField(max_length=20, required=False)
+    status = serializers.CharField(max_length=20, required=False)
+    dietary_restrictions = serializers.CharField(required=False, allow_blank=True)
+    member_type = serializers.CharField(max_length=20, required=False)
+    monthly_deposit = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+    
+    class Meta:
+        model = Member
+        fields = ['username', 'email', 'first_name', 'last_name',
+                 'phone', 'role', 'status', 'dietary_restrictions', 'member_type', 'monthly_deposit']
+    
+    def update(self, instance, validated_data):
+        # Extract user fields
+        user_fields = ['username', 'email', 'first_name', 'last_name']
+        user_data = {}
+        for field in user_fields:
+            if field in validated_data:
+                user_data[field] = validated_data.pop(field)
+        
+        # Update user fields
+        if user_data:
+            for attr, value in user_data.items():
+                setattr(instance.user, attr, value)
+            instance.user.save()
+        
+        # Update member fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
         
         return instance

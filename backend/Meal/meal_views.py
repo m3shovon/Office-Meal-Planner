@@ -1,4 +1,5 @@
-from rest_framework import viewsets, permissions, status, filters
+# meal_views.py:
+from rest_framework import viewsets, permissions, status, filters, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,15 +7,15 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count, Sum
 from django.utils import timezone
 from datetime import datetime, timedelta
-from ..models import Member, Meal, ShoppingList, ShoppingItem, Expense, Budget, MonthlyDeposit, DailyMealCost, MemberMealTracking
-from ..serializers.meal_serializers import (
+from .models import Member, Meal, ShoppingList, ShoppingItem, Expense, Budget, MonthlyDeposit, DailyMealCost, MemberMealTracking
+from .meal_serializers import (
     MealSerializer, MealCreateSerializer,
     ShoppingListSerializer, ShoppingListCreateSerializer, ShoppingItemSerializer,
     ExpenseSerializer, BudgetSerializer, DashboardStatsSerializer,
     MonthlyDepositSerializer, DailyMealCostSerializer, MemberMealTrackingSerializer,
     MemberMealTrackingBulkSerializer, MemberDetailSerializer
 )
-from ..serializers.auth_serializers import MemberSerializer
+from .auth_serializers import MemberSerializer
 
 
 class MemberViewSet(viewsets.ModelViewSet):
@@ -26,19 +27,42 @@ class MemberViewSet(viewsets.ModelViewSet):
     search_fields = ['user__username', 'user__first_name', 'user__last_name', 'user__email']
     ordering_fields = ['join_date', 'user__first_name']
     ordering = ['-join_date']
-    
+
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return MemberDetailSerializer
         return MemberSerializer
-    
+
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             permission_classes = [permissions.IsAuthenticated]
-            # Add role-based permissions here if needed
         else:
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
+
+    # ✅ make sure the Member is linked to the current user
+    def perform_create(self, serializer):
+        member, created = Member.objects.get_or_create(
+            user=self.request.user,
+            defaults=serializer.validated_data
+        )
+        if not created:
+            # Instead of raising error, return the existing member
+            self.existing_member = member
+        else:
+            self.existing_member = None
+        return member
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        if hasattr(self, "existing_member") and self.existing_member:
+            serializer = self.get_serializer(self.existing_member)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return response
+
+    # (Optional but safe) prevent swapping the linked user on updates
+    def perform_update(self, serializer):
+        serializer.save(user=self.get_object().user)
 
 
 class MealViewSet(viewsets.ModelViewSet):

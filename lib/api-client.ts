@@ -8,7 +8,7 @@ class ApiClient {
   private baseURL: string
   private accessToken: string | null = null
 
-  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000") {
+  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8888") {
     this.baseURL = baseURL
     this.loadTokenFromStorage()
   }

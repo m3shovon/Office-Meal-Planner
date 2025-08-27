@@ -1,6 +1,7 @@
+# meal_urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from ..views.meal_views import (
+from .meal_views import (
     MemberViewSet,
     MealViewSet,
     ShoppingListViewSet,

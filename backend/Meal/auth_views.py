@@ -1,3 +1,4 @@
+# auth_views.py:
 from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -6,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from ..serializers.auth_serializers import (
+from .auth_serializers import (
     RegisterSerializer,
     LoginSerializer,
     UserSerializer,
